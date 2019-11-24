@@ -28,7 +28,7 @@ float temp; //Stores temperature value
 
 //fsr
 int fsrPin = 0;     // the FSR and 10K pulldown are connected to a0
-int fsrReading = analogRead(fsrPin);     // the analog reading from the FSR resistor divider
+int fsrReading;     // the analog reading from the FSR resistor divider
 
 
 void setup() {
@@ -103,7 +103,7 @@ val = digitalRead(inputPin);  // read input value
  int fsrval=fsr(fsrReading);
  if (fsrval==1){
  wifiPost(9, 1, "Trigger12", "Trigger2", "Trigger3"); //trigger if value is over threshold
- 
+ heatIndex(tempF, hum);
   }
       
   }
@@ -112,21 +112,21 @@ val = digitalRead(inputPin);  // read input value
 
 
 }
-int fsr(fsrReading){
+int fsr(fsrRead){
   
- 
+  fsrRead= analogRead(fsrPin)
   Serial.print("Analog reading = ");
-  Serial.print(fsrReading);     // the raw analog reading
+  Serial.print(fsrRead);     // the raw analog reading
  
   // We'll have a few threshholds, qualitatively determined
-  if (fsrReading < 3) {
+  if (fsrRead < 3) {
  
     
      Serial.print("No pressure detected");
      return 0;
   
   
-  } else if (fsrReading < 5) {
+  } else if (fsrRead < 5) {
   wifiPost(9, 1, "Trigger12", "Trigger2", "Trigger3"); //trigger if value is over threshold 
     Serial.print("Pressure detected");
     return 1;
