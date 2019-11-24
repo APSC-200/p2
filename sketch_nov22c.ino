@@ -24,13 +24,14 @@ void loop() {
 // retrieved from https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
   float hIndexF = (-42.379 + (2.04901523*tempF) + (10.14333127*hum) - (0.22475541*tempF*hum) - (0.00683783*tempF*tempF) - (0.05481717*hum*hum) + (0.00122874*tempF*tempF*hum) + (0.00085282*tempF*hum*hum) - (0.00000199*tempF*tempF*hum*hum));
   float otherHInd = -42.379 + (2.04901523*tempF) + (10.14333127*hum) - (0.22475541*tempF*hum) - (0.00683783*tempF*tempF) - (0.05481717*hum*hum) + (0.00122874*tempF*tempF*hum) + (0.00085282*tempF*hum*hum) - (0.00000199*tempF*tempF*hum*hum);
+  float hIndexC = ((tempF - 32) / 9);
   lcd.setCursor(0,0); // Sets the location at which subsequent text written to the LCD will be displayed
   lcd.print("T:"); // Prints string "Temp." on the LCD
-  lcd.print(tempF); // Prints the temperature value from the sensor
+  lcd.print(dht.readTemperature); // Prints the temperature value from the sensor
   lcd.print("  H:");
   lcd.print(hum);
   lcd.setCursor(0,1);
   lcd.print("Heat Index:");
-  lcd.print(hIndexF);
+  lcd.print(hIndexC);
   delay(2000);
 }
