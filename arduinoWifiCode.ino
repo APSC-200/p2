@@ -56,7 +56,7 @@ void setup() {
     delay(10000);
   }
   Serial.println("Connected to wifi");
- pinMode(inputPin, INPUT);
+ pinMode(inputPin, INPUT);*/
    // Initializes the interface to the LCD screen, and specifies the dimensions (width and height) of the display
 
 }
@@ -69,9 +69,8 @@ val = digitalRead(inputPin);  // read input value
     
    
      //Add HI here if true call wifipost
-  float tempF = ((1.8*(dht.readTemperature()))+32);
-  float hum = dht.readHumidity();
-heatIndex(tempF, hum);
+ 
+heatIndex();
 
 
      
@@ -97,10 +96,12 @@ heatIndex(tempF, hum);
 
 }
 
-void heatIndex(float tempF, float hum){
+void heatIndex(){
+   float tempF = ((1.8*(dht.readTemperature()))+32);
+  float hum = dht.readHumidity();
    float hIndexF = (-42.379 + (2.04901523*tempF) + (10.14333127*hum) - (0.22475541*tempF*hum) - (0.00683783*tempF*tempF) - (0.05481717*hum*hum) + (0.00122874*tempF*tempF*hum) + (0.00085282*tempF*hum*hum) - (0.00000199*tempF*tempF*hum*hum));
   float otherHInd = -42.379 + (2.04901523*tempF) + (10.14333127*hum) - (0.22475541*tempF*hum) - (0.00683783*tempF*tempF) - (0.05481717*hum*hum) + (0.00122874*tempF*tempF*hum) + (0.00085282*tempF*hum*hum) - (0.00000199*tempF*tempF*hum*hum);
-  float hIndexC = ((tempF - 32) / 9);
+  float hIndexC = (hIndexF - 32) * 0.5556;
   lcd.setCursor(0,0); // Sets the location at which subsequent text written to the LCD will be displayed
   lcd.print("T:"); // Prints string "Temp." on the LCD
   lcd.print(dht.readTemperature()); // Prints the temperature value from the sensor
@@ -110,7 +111,8 @@ void heatIndex(float tempF, float hum){
   lcd.print("Heat Index:");
   lcd.print(hIndexC);
   if(hIndexC > 40){
-    wifiPost(9, 1, "Trigger12", "Trigger2", "Trigger3");
+   // wifiPost(9, 1, "Trigger12", "Trigger2", "Trigger3");
+ Serial.println("What up");
   }
 }
 
