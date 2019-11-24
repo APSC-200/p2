@@ -114,7 +114,7 @@ val = digitalRead(inputPin);  // read input value
 }
 int fsr(fsrRead){
   
-  fsrRead= analogRead(fsrPin)
+  fsrRead= analogRead(fsrPin);
   Serial.print("Analog reading = ");
   Serial.print(fsrRead);     // the raw analog reading
  
