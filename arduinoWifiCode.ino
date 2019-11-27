@@ -1,25 +1,29 @@
 #include <ArduinoHttpClient.h>
 #include <WiFiNINA.h>
 #include <SPI.h>
-#include <DHT.h>
 #include <LiquidCrystal.h> // includes the LiquidCrystal Library
-#define DHTPIN 7     // what pin we're connected to
+#include "arduino_secrets.h"
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2); // Creates an LCD object. Parameters: (rs, enable, d4, d5, d6, d7)
+
+#include "DHT.h"
+#define DHTPIN 8     // what pin we're connected to
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 DHT dht(DHTPIN, DHTTYPE); //// Initialize DHT sensor for normal 16mhz Arduino
 
-LiquidCrystal lcd(7, 6, 5, 4, 3, 2); // Creates an LCD object. Parameters: (rs, enable, d4, d5, d6, d7)
+
 int status = WL_IDLE_STATUS;
-#include "arduino_secrets.h" 
+ 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
-
 char serverAddress[] = "130.15.85.65";  // server address
 int port = 80;
 WiFiClient wifi;
 HttpClient client = HttpClient(wifi, serverAddress, port);
 
+int fsrReading; 
+int fsrPin = 0;                 //fsr and 10k are at a0
 int chk;
-int inputPin = 2;               // choose the input pin (for PIR sensor)
+int inputPin = 9;               // choose the input pin (for PIR sensor)
 int pirState = LOW;             // we start, assuming no motion detected
 int val = 0;                    // variable for reading the pin status
 float temp; //Stores temperature value
@@ -27,7 +31,9 @@ float temp; //Stores temperature value
 
 void setup() {
     // check for the WiFi module:
-    Serial.begin(9600);
+    dht.begin();
+  lcd.begin(16,2);
+  Serial.begin(9600);
   if (WiFi.status() == WL_NO_MODULE) {
     Serial.println("Communication with WiFi module failed!");
     // don't continue
@@ -53,8 +59,7 @@ void setup() {
   }
   Serial.println("Connected to wifi");
  pinMode(inputPin, INPUT);
-  dht.begin();
-  lcd.begin(16,2); // Initializes the interface to the LCD screen, and specifies the dimensions (width and height) of the display
+   // Initializes the interface to the LCD screen, and specifies the dimensions (width and height) of the display
 
 }
 
@@ -63,8 +68,14 @@ void loop() {
 val = digitalRead(inputPin);  // read input value
   if (val == HIGH) { 
     // check if the input is HIGH
-    wifiPost(9, 1, "Trigger12", "Trigger2", "Trigger3");
-     // turn LED ON
+    
+   
+     //Add HI here if true call wifipost
+ 
+heatIndex();
+
+  
+     
     if (pirState == LOW) {
       // we have just turned on
       Serial.println("Motion detected!");
@@ -74,30 +85,49 @@ val = digitalRead(inputPin);  // read input value
   } else {
     
     if (pirState == HIGH){
-      wifiPost(9, 1, "Trigger12", "Trigger2", "Trigger3");
+     
       // we have just turned of
       Serial.println("Motion ended!");
       // We only want to print on the output change, not state
       pirState = LOW;
     }
   }
+  //fsr start
+ fsrReading = analogRead(fsrPin);  
+ 
+  Serial.print("Analog reading = ");
+  Serial.println(fsrReading);     // the raw analog reading
 
-delay(2000);
-    //Read data and store it to variables hum and temp
+if (fsrReading > 800) {
+    Serial.println("There is a bit of weight");
+heatIndex();
     
-    temp= dht.readTemperature();
-    //Print temp and humidity values to serial monitor
-   
-    Serial.print("  Temp: ");
-    Serial.print(temp);
-    Serial.println(" Celsius");
-    delay(10000); //Delay 2 sec.
 
-
-
+  
+}
+delay(2000);
 }
 
+void heatIndex(){ 
 
+   float tempF = ((1.8*(dht.readTemperature()))+32);
+  float hum = dht.readHumidity();
+   float hIndexF = (-42.379 + (2.04901523*tempF) + (10.14333127*hum) - (0.22475541*tempF*hum) - (0.00683783*tempF*tempF) - (0.05481717*hum*hum) + (0.00122874*tempF*tempF*hum) + (0.00085282*tempF*hum*hum) - (0.00000199*tempF*tempF*hum*hum));
+  float otherHInd = -42.379 + (2.04901523*tempF) + (10.14333127*hum) - (0.22475541*tempF*hum) - (0.00683783*tempF*tempF) - (0.05481717*hum*hum) + (0.00122874*tempF*tempF*hum) + (0.00085282*tempF*hum*hum) - (0.00000199*tempF*tempF*hum*hum);
+  float hIndexC = (hIndexF - 32) * 0.5556;
+  lcd.setCursor(0,0); // Sets the location at which subsequent text written to the LCD will be displayed
+  lcd.print("T:"); // Prints string "Temp." on the LCD
+  lcd.print(dht.readTemperature()); // Prints the temperature value from the sensor
+  lcd.print("  H:");
+  lcd.print(hum);
+  lcd.setCursor(0,1);
+  lcd.print("Heat Index:");
+  lcd.print(hIndexC);
+  if(hIndexC > 20){
+   // wifiPost(9, 1, "Trigger12", "Trigger2", "Trigger3");
+    Serial.println("alert sent");
+  }
+}
 
 //function to write post request to server
 void wifiPost(int groupNum, int alertVar, String Trigger_1Var, String Trigger_2Var, String Trigger_3Var){
